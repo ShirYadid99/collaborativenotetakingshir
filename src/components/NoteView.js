@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Container, Form, Button } from 'react-bootstrap';
+import { Container, Form, Button, Alert, Spinner } from 'react-bootstrap';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from './firebase-config';
 import AuthContext from '../context/AuthContext';
@@ -9,34 +9,50 @@ function NoteView() {
     const { noteId } = useParams();
     const { user } = useContext(AuthContext);
     const [note, setNote] = useState({ title: '', content: '' });
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
     const navigate = useNavigate(); // For navigation
 
     useEffect(() => {
         const fetchNote = async () => {
-            if (user && noteId) {
+            if (user) {
                 try {
                     const noteDoc = doc(db, 'notes', noteId);
                     const noteSnapshot = await getDoc(noteDoc);
                     if (noteSnapshot.exists()) {
                         setNote(noteSnapshot.data());
                     } else {
-                        console.error('No such document!');
+                        setError('No such document!');
                     }
                 } catch (error) {
-                    console.error('Error fetching note:', error);
+                    setError('Error fetching note: ' + error.message);
+                } finally {
+                    setLoading(false);
                 }
+            } else {
+                navigate('/signin'); // Redirect to sign-in page if not authenticated
             }
         };
         fetchNote();
-    }, [noteId, user]);
+    }, [noteId, user, navigate]);
 
     const handleBackToList = () => {
-        navigate('/notes'); // Update this to your actual route for the notes list
+        navigate('/notes'); // Navigate back to notes list
     };
+
+    if (loading) {
+        return (
+            <Container className="mt-5">
+                <Spinner animation="border" />
+                <span className="ms-2">Loading...</span>
+            </Container>
+        );
+    }
 
     return (
         <Container className="mt-5">
             <h2>View Note</h2>
+            {error && <Alert variant="danger">{error}</Alert>}
             <Form>
                 <Form.Group controlId="formNoteTitle" className="mb-3">
                     <Form.Label>Note Title</Form.Label>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Container, ListGroup, Button, Row, Col, Alert } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import { Container, ListGroup, Button, Row, Col, Alert, Spinner } from 'react-bootstrap';
+import { Link, useNavigate } from 'react-router-dom';
 import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { db } from './firebase-config';
 import AuthContext from '../context/AuthContext';
@@ -9,6 +9,8 @@ function NotesList() {
     const { user } = useContext(AuthContext);
     const [notes, setNotes] = useState([]);
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchNotes = async () => {
@@ -23,11 +25,16 @@ function NotesList() {
                     setNotes(notesList);
                 } catch (error) {
                     setError('Error fetching notes');
+                } finally {
+                    setLoading(false);
                 }
+            } else {
+                navigate('/signin'); // Redirect to sign-in page if not signed in
             }
         };
+
         fetchNotes();
-    }, [user]);
+    }, [user, navigate]);
 
     const handleDelete = async (id) => {
         if (user) {
@@ -43,32 +50,47 @@ function NotesList() {
         }
     };
 
+    if (loading) {
+        return (
+            <Container className="mt-5">
+                <Spinner animation="border" />
+                <span className="ms-2">Loading...</span>
+            </Container>
+        );
+    }
+
     return (
         <Container className="mt-5">
             <h2>All Notes</h2>
             {error && <Alert variant="danger">{error}</Alert>}
-            <ListGroup>
-                {notes.map(note => (
-                    <ListGroup.Item key={note.id}>
-                        <Row>
-                            <Col>
-                                <Link to={`/note-view/${note.id}`}>{note.title}</Link>
-                            </Col>
-                            <Col className="text-end">
-                                <Button variant="primary" as={Link} to={`/edit-note/${note.id}`} className="me-2">
-                                    Edit
-                                </Button>
-                                <Button variant="info" as={Link} to={`/note-history/${note.id}`} className="me-2">
-                                    History
-                                </Button>
-                                <Button variant="danger" onClick={() => handleDelete(note.id)}>
-                                    Delete
-                                </Button>
-                            </Col>
-                        </Row>
-                    </ListGroup.Item>
-                ))}
-            </ListGroup>
+            {notes.length === 0 ? (
+                <Alert variant="info">
+                    No notes available. <Link to="/add-note">Add a new note</Link> to get started.
+                </Alert>
+            ) : (
+                <ListGroup>
+                    {notes.map(note => (
+                        <ListGroup.Item key={note.id}>
+                            <Row>
+                                <Col>
+                                    <Link to={`/note-view/${note.id}`}>{note.title}</Link>
+                                </Col>
+                                <Col className="text-end">
+                                    <Button variant="primary" as={Link} to={`/edit-note/${note.id}`} className="me-2">
+                                        Edit
+                                    </Button>
+                                    <Button variant="info" as={Link} to={`/note-history/${note.id}`} className="me-2">
+                                        History
+                                    </Button>
+                                    <Button variant="danger" onClick={() => handleDelete(note.id)}>
+                                        Delete
+                                    </Button>
+                                </Col>
+                            </Row>
+                        </ListGroup.Item>
+                    ))}
+                </ListGroup>
+            )}
         </Container>
     );
 }

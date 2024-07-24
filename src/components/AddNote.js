@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { Container, Form, Button, Alert } from 'react-bootstrap';
+import { Container, Form, Button, Alert, Spinner } from 'react-bootstrap';
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from './firebase-config';
 import AuthContext from '../context/AuthContext';
@@ -10,10 +10,12 @@ function AddNote() {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
     const handleSave = async () => {
         if (user) {
+            setLoading(true);
             try {
                 // Add the note to the 'notes' collection
                 const noteRef = await addDoc(collection(db, 'notes'), {
@@ -35,9 +37,12 @@ function AddNote() {
             } catch (error) {
                 console.error('Error adding note:', error);
                 setError('Error adding note. Please try again.');
+            } finally {
+                setLoading(false);
             }
         } else {
             setError('You must be signed in to add notes.');
+            navigate('/signin'); // Redirect to the sign-in page if not signed in
         }
     };
 
@@ -45,28 +50,35 @@ function AddNote() {
         <Container className="mt-5">
             <h2>Add New Note</h2>
             {error && <Alert variant="danger">{error}</Alert>}
-            <Form>
-                <Form.Group controlId="formNoteTitle" className="mb-3">
-                    <Form.Label>Note Title</Form.Label>
-                    <Form.Control
-                        type="text"
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                    />
-                </Form.Group>
-                <Form.Group controlId="formNoteContent" className="mb-3">
-                    <Form.Label>Note Content</Form.Label>
-                    <Form.Control
-                        as="textarea"
-                        rows={3}
-                        value={content}
-                        onChange={(e) => setContent(e.target.value)}
-                    />
-                </Form.Group>
-                <Button variant="primary" onClick={handleSave}>
-                    Save
-                </Button>
-            </Form>
+            {loading ? (
+                <div className="d-flex justify-content-center mt-4">
+                    <Spinner animation="border" />
+                    <span className="ms-2">Saving...</span>
+                </div>
+            ) : (
+                <Form>
+                    <Form.Group controlId="formNoteTitle" className="mb-3">
+                        <Form.Label>Note Title</Form.Label>
+                        <Form.Control
+                            type="text"
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                        />
+                    </Form.Group>
+                    <Form.Group controlId="formNoteContent" className="mb-3">
+                        <Form.Label>Note Content</Form.Label>
+                        <Form.Control
+                            as="textarea"
+                            rows={3}
+                            value={content}
+                            onChange={(e) => setContent(e.target.value)}
+                        />
+                    </Form.Group>
+                    <Button variant="primary" onClick={handleSave}>
+                        Save
+                    </Button>
+                </Form>
+            )}
         </Container>
     );
 }

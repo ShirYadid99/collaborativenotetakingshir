@@ -106,8 +106,11 @@ function EditNote() {
                         onChange={(e) => setNote({ ...note, content: e.target.value })}
                     />
                 </Form.Group>
-                <Button variant="primary" onClick={handleSave}>
+                <Button variant="primary" onClick={handleSave} className="me-2">
                     Save
+                </Button>
+                <Button variant="secondary" onClick={() => navigate('/notes')}>
+                    Back to List
                 </Button>
             </Form>
         </Container>
