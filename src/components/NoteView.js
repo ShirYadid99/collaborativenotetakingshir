@@ -8,7 +8,7 @@ import AuthContext from '../context/AuthContext';
 function NoteView() {
     const { noteId } = useParams();
     const { user } = useContext(AuthContext);
-    const [note, setNote] = useState({ title: '', content: '' });
+    const [note, setNote] = useState({ title: '', content: '', category: '' });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const navigate = useNavigate(); // For navigation
@@ -68,6 +68,14 @@ function NoteView() {
                         as="textarea"
                         rows={3}
                         value={note.content}
+                        readOnly
+                    />
+                </Form.Group>
+                <Form.Group controlId="formNoteCategory" className="mb-3">
+                    <Form.Label>Note Category</Form.Label>
+                    <Form.Control
+                        type="text"
+                        value={note.category}
                         readOnly
                     />
                 </Form.Group>

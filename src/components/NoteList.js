@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Container, ListGroup, Button, Row, Col, Alert, Spinner } from 'react-bootstrap';
+import { Container, ListGroup, Button, Row, Col, Alert, Spinner, Form } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { db } from './firebase-config';
@@ -8,8 +8,10 @@ import AuthContext from '../context/AuthContext';
 function NotesList() {
     const { user } = useContext(AuthContext);
     const [notes, setNotes] = useState([]);
+    const [filteredNotes, setFilteredNotes] = useState([]);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(true);
+    const [selectedCategory, setSelectedCategory] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -23,6 +25,7 @@ function NotesList() {
                         ...doc.data()
                     }));
                     setNotes(notesList);
+                    setFilteredNotes(notesList);
                 } catch (error) {
                     setError('Error fetching notes');
                 } finally {
@@ -40,7 +43,9 @@ function NotesList() {
         if (user) {
             try {
                 await deleteDoc(doc(db, 'notes', id));
-                setNotes(notes.filter(note => note.id !== id));
+                const updatedNotes = notes.filter(note => note.id !== id);
+                setNotes(updatedNotes);
+                setFilteredNotes(updatedNotes);
             } catch (error) {
                 console.error('Error deleting note:', error);
                 setError('Error deleting note');
@@ -49,6 +54,21 @@ function NotesList() {
             setError('You must be signed in to delete notes.');
         }
     };
+
+    const handleCategoryChange = (e) => {
+        const category = e.target.value;
+        setSelectedCategory(category);
+
+        if (category === 'All Categories') {
+            setFilteredNotes(notes);
+        } else {
+            const filtered = notes.filter(note => note.category && note.category.toLowerCase() === category.toLowerCase());
+            setFilteredNotes(filtered);
+        }
+    };
+
+    // Extract unique categories for the dropdown
+    const categories = [...new Set(notes.map(note => note.category))];
 
     if (loading) {
         return (
@@ -63,13 +83,28 @@ function NotesList() {
         <Container className="mt-5">
             <h2>All Notes</h2>
             {error && <Alert variant="danger">{error}</Alert>}
-            {notes.length === 0 ? (
+            <Form.Group className="mb-3">
+                <Form.Label>Filter by Category</Form.Label>
+                <Form.Control
+                    as="select"
+                    value={selectedCategory}
+                    onChange={handleCategoryChange}
+                >
+                    <option value="All Categories">All Categories</option>
+                    {categories.map((category, index) => (
+                        <option key={index} value={category}>
+                            {category}
+                        </option>
+                    ))}
+                </Form.Control>
+            </Form.Group>
+            {filteredNotes.length === 0 ? (
                 <Alert variant="info">
                     No notes available. <Link to="/add-note">Add a new note</Link> to get started.
                 </Alert>
             ) : (
                 <ListGroup>
-                    {notes.map(note => (
+                    {filteredNotes.map(note => (
                         <ListGroup.Item key={note.id}>
                             <Row>
                                 <Col>
