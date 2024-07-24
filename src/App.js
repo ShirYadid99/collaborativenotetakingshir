@@ -11,6 +11,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import NavbarComponent from "./components/NavbarComp";
 import NoteView from "./components/NoteView";
 import AddNote from "./components/AddNote";
+import EditNote from "./components/EditNote";
+import NoteHistory from "./components/NoteHistory";
 
 function App() {
     const [selectedNoteId, setSelectedNoteId] = useState(null);
@@ -29,8 +31,10 @@ function App() {
                     <Route path="/signin" element={<SignIn />} />
                     <Route path="/signup" element={<SignUp />} />
                     <Route path="/notes" element={<NotesList />} />
-                    <Route path="/notes/:noteId" element={<NoteView />} />
                     <Route path="/add-note" element={<AddNote />} />
+                    <Route path="/edit-note/:id" element={<EditNote />} />
+                    <Route path="/note-view/:noteId" element={<NoteView />} />
+                    <Route path="/note-history/:id" element={<NoteHistory />} />
                 </Routes>
             </Router>
         </AuthProvider>

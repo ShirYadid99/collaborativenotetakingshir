@@ -1,40 +1,53 @@
 // src/SignUp.js
 import React, { useState } from 'react';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from './firebase-config'; // Path may need to be adjusted based on your directory structure
+import { auth } from './firebase-config';
+import { Container, Form, Button, Alert } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 
 function SignUp() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const navigate = useNavigate(); // Initialize navigate hook
 
     const handleSignUp = async () => {
         try {
             await createUserWithEmailAndPassword(auth, email, password);
-            alert('User signed up successfully');
+            navigate('/'); // Redirect to homepage
         } catch (err) {
             setError(err.message);
         }
     };
 
     return (
-        <div>
-            <h2>Sign Up</h2>
-            <input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-            />
-            <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-            />
-            <button onClick={handleSignUp}>Sign Up</button>
-            {error && <p>{error}</p>}
-        </div>
+        <Container className="mt-5">
+            <h2 className="text-center mb-4">Sign Up</h2>
+            <Form>
+                <Form.Group controlId="formEmail" className="mb-3">
+                    <Form.Label>Email</Form.Label>
+                    <Form.Control
+                        type="email"
+                        placeholder="Enter your email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                    />
+                </Form.Group>
+                <Form.Group controlId="formPassword" className="mb-3">
+                    <Form.Label>Password</Form.Label>
+                    <Form.Control
+                        type="password"
+                        placeholder="Enter your password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
+                </Form.Group>
+                <Button variant="primary" onClick={handleSignUp} className="w-100">
+                    Sign Up
+                </Button>
+                {error && <Alert variant="danger" className="mt-3">{error}</Alert>}
+            </Form>
+        </Container>
     );
 }
 

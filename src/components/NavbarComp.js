@@ -23,15 +23,15 @@ const NavbarComponent = () => {
         <Navbar bg="light" expand="lg">
             <Container>
                 <Navbar.Brand as={Link} to="/">Note-Taking App</Navbar.Brand>
-                <Nav className="ml-auto">
+                <Nav className="me-auto"> {/* Move buttons to the left */}
                     {user ? (
                         <>
                             <Nav.Link as={Link} to="/notes">
-                                Welcome, {user.email}
+                                View Notes
                             </Nav.Link>
-                            <Button variant="outline-danger" onClick={handleSignOut}>
-                                Sign Out
-                            </Button>
+                            <Nav.Link as={Link} to="/add-note">
+                                Add Note
+                            </Nav.Link>
                         </>
                     ) : (
                         <>
@@ -41,6 +41,18 @@ const NavbarComponent = () => {
                             <Nav.Link as={Link} to="/signup">
                                 Sign Up
                             </Nav.Link>
+                        </>
+                    )}
+                </Nav>
+                <Nav>
+                    {user && (
+                        <>
+                            <Navbar.Text className="me-2">
+                                Welcome, {user.email}
+                            </Navbar.Text>
+                            <Button variant="outline-danger" onClick={handleSignOut}>
+                                Sign Out
+                            </Button>
                         </>
                     )}
                 </Nav>

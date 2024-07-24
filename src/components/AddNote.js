@@ -1,4 +1,3 @@
-// src/components/AddNote.js
 import React, { useState, useContext } from 'react';
 import { Container, Form, Button, Alert } from 'react-bootstrap';
 import { collection, addDoc } from 'firebase/firestore';
@@ -16,12 +15,22 @@ function AddNote() {
     const handleSave = async () => {
         if (user) {
             try {
-                await addDoc(collection(db, 'notes'), {
+                // Add the note to the 'notes' collection
+                const noteRef = await addDoc(collection(db, 'notes'), {
                     title: title,
                     content: content,
                     userId: user.uid, // Optional: To link the note to the user
                     createdAt: new Date()
                 });
+
+                // Add an entry to the 'noteHistory' collection
+                await addDoc(collection(db, 'noteHistory'), {
+                    noteId: noteRef.id, // ID of the newly created note
+                    changedBy: user.email,
+                    date: new Date().toISOString(),
+                    change: 'Created new note'
+                });
+
                 navigate('/notes'); // Redirect to the notes list page
             } catch (error) {
                 console.error('Error adding note:', error);
